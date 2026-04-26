@@ -79,43 +79,6 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Flatpak for Branch Discovery
-        run: |
-          sudo apt update && sudo apt install -y flatpak
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-
-      - name: Prepare Dynamic Flatpak List
-        id: flatpak_list
-        shell: bash
-        run: |
-          BASE_DIR="files/flatpaks"
-          REFS_STRING=""
-
-          process_file() {
-            local file_path=$1
-            local type=$2 # "app" or "runtime"
-            
-            if [ -f "$file_path" ]; then
-              while IFS= read -r ID || [ -n "$ID" ]; do
-                [[ -z "$ID" || "$ID" =~ ^# ]] && continue
-                CLEAN_ID=$(echo "$ID" | xargs)
-                
-                LATEST_BRANCH=$(flatpak --user remote-ls flathub --columns=branch --app-runtime $CLEAN_ID 2>/dev/null | sort -V | tail -n 1)
-                
-                if [ -z "$LATEST_BRANCH" ]; then
-                    LATEST_BRANCH="stable"
-                fi
-                
-                REFS_STRING+="$type/$CLEAN_ID/x86_64/$LATEST_BRANCH "
-              done < "$file_path"
-            fi
-          }
-
-          process_file "$BASE_DIR/app" "app"
-          process_file "$BASE_DIR/runtime" "runtime"
-
-          echo "refs=$(echo $REFS_STRING | xargs)" >> $GITHUB_OUTPUT
-
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso_build
@@ -126,7 +89,7 @@ jobs:
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
-          flatpak_remote_refs: ${{ steps.flatpak_list.outputs.refs }}
+          flatpak_remote_refs_dir: files/flatpak
           iso_name: ${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
           
       - name: Upload ISO to Job Artifacts
