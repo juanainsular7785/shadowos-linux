@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gpu: [nvidia, amd-intel]
+        gpu: [nvidia, nvidia-legacy, amd-intel]
         steam: [steam, no-steam]
         flatpak_status: [flatpaks, no-flatpaks]
     permissions:
