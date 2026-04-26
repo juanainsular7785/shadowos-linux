@@ -22,6 +22,7 @@ jobs:
           - shadowos-linux-nvidia
           - shadowos-linux-steam
           - shadowos-linux-nvidia-steam
+        include_flatpaks: [true, false]
     permissions:
       contents: read
       packages: read
@@ -39,6 +40,11 @@ jobs:
         id: meta
         shell: bash
         run: |
+          if [[ "${{ matrix.include_flatpaks }}" == "false" ]]; then
+            echo "suffix=-noflatpaks" >> $GITHUB_OUTPUT
+          else
+            echo "suffix=" >> $GITHUB_OUTPUT
+          fi
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
@@ -78,6 +84,7 @@ jobs:
 
       - name: Resolve Dynamic Flatpak Refs
         id: flatpak_list
+        if: ${{ matrix.include_flatpaks == true }}
         shell: bash
         run: |
           BASE_DIR="files/flatpaks"
@@ -121,15 +128,15 @@ jobs:
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
-          flatpak_remote_refs: ${{ steps.flatpak_list.outputs.refs }}
-          iso_name: ${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+          flatpak_remote_refs: ${{ matrix.include_flatpaks == true && steps.flatpak_list.outputs.refs || '' }}
+          iso_name: ${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
           
       - name: Upload ISO to Job Artifacts
         uses: actions/upload-artifact@main
         with:
           path: |
-            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
-            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
-          name: ${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
+            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
+          name: ${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
           retention-days: 4
-          compression-level: 0
+          compression-level: 9
