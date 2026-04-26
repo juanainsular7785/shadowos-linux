@@ -27,23 +27,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        recipe:
-          # Base Variants
-          - variants/shadowos-linux.yml
-          - variants/shadowos-linux-nvidia.yml
-          # Steam Variants
-          - steam/shadowos-linux-steam.yml
-          - steam/shadowos-linux-nvidia-steam.yml
+        gpu: [nvidia, nvidia-legacy, amd-intel]
+        steam: [steam, no-steam]
     steps:
       - name: Maximize build space
         uses: jlumbroso/free-disk-space@main
         with: 
          tool-cache: true
 
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Generate Recipe Path
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${{ matrix.steam }}" == "steam" ]]; then
+            FOLDER="steam"
+          else
+            FOLDER="variants"
+          fi
+
+          FILENAME="shadowos-linux"
+          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && FILENAME+="-${{ matrix.gpu }}"
+          [[ "${{ matrix.steam }}" == "steam" ]] && FILENAME+="-steam"
+          
+          echo "recipe_path=$FOLDER/$FILENAME.yml" >> $GITHUB_OUTPUT
+
       - name: Build Custom Image
         uses: blue-build/github-action@main
         with:
-          recipe: ${{ matrix.recipe }}
+          recipe: ${{ steps.meta.outputs.recipe_path }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
