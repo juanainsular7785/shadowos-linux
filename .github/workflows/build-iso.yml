@@ -17,12 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - shadowos-linux
-          - shadowos-linux-nvidia
-          - shadowos-linux-steam
-          - shadowos-linux-nvidia-steam
-        flatpak_status: ["flatpaks", "no-flatpaks"]
+        gpu: [nvidia, amd-intel]
+        steam: [steam, no-steam]
+        flatpak_status: [flatpaks, no-flatpaks]
     permissions:
       contents: read
       packages: read
@@ -40,12 +37,17 @@ jobs:
         id: meta
         shell: bash
         run: |
-          # Use the string comparison for the filename suffix
+          ISO_NAME="shadowos-linux"
+          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && ISO_NAME+="-${{ matrix.gpu }}"
+          [[ "${{ matrix.steam }}" != "no-steam" ]] && ISO_NAME+="-${{ matrix.steam }}"
+          
+          echo "container_image=$ISO_NAME" >> $GITHUB_OUTPUT
+
           if [[ "${{ matrix.flatpak_status }}" == "no-flatpaks" ]]; then
-            echo "suffix=-noflatpaks" >> $GITHUB_OUTPUT
-          else
-            echo "suffix=" >> $GITHUB_OUTPUT
+            ISO_NAME+="-noflatpaks"
           fi
+          
+          echo "full_iso_name=$ISO_NAME" >> $GITHUB_OUTPUT
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
@@ -124,20 +126,20 @@ jobs:
         id: iso_build
         with:
           arch: x86_64
-          image_name: ${{ matrix.image }}
+          image_name: ${{ steps.meta.outputs.container_image }}
           image_repo: ghcr.io/shadowos-linux 
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
           flatpak_remote_refs: ${{ matrix.flatpak_status == 'flatpaks' && steps.flatpak_list.outputs.refs || '' }}
-          iso_name: ${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+          iso_name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
           
       - name: Upload ISO to Job Artifacts
         uses: actions/upload-artifact@main
         with:
           path: |
-            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
-            ${{ steps.iso_build.outputs.iso_path }}/${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
-          name: ${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
+            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
+          name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
           retention-days: 4
           compression-level: 9
