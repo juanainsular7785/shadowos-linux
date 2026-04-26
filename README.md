@@ -27,10 +27,18 @@ VARIANT=shadowos-linux
 </details>
   
 <details>
-<summary><b>ShadowOS (NVIDIA)</b></summary>
+<summary><b>ShadowOS (NVIDIA) (GTX 16xx and RTX series)</b></summary>
 
 ```bash
 VARIANT=shadowos-linux-nvidia
+```
+</details>
+
+<details>
+<summary><b>ShadowOS (NVIDIA Legacy) (GTX 9xx-10xx series)</b></summary>
+
+```bash
+VARIANT=shadowos-linux-nvidia-legacy
 ```
 </details>
 
@@ -43,10 +51,18 @@ VARIANT=shadowos-linux-steam
 </details>
 
 <details>
-<summary><b>ShadowOS (NVIDIA) with Steam</b></summary>
+<summary><b>ShadowOS (NVIDIA) with Steam (GTX 16xx and RTX series)</b></summary>
 
 ```bash
 VARIANT=shadowos-linux-nvidia-steam
+```
+</details>
+
+<details>
+<summary><b>ShadowOS (NVIDIA Legacy) with Steam (GTX 9xx-10xx series)</b></summary>
+
+```bash
+VARIANT=shadowos-linux-nvidia-legacy-steam
 ```
 </details>
 
@@ -76,19 +92,26 @@ VARIANT=shadowos-linux-nvidia-steam
   ```
   rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux:latest
   ```
-- ShadowOS (Nvidia)
+- ShadowOS (Nvidia) (GTX 16xx and RTX series)
   ```
   rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia:latest
+  ```
+- ShadowOS (Nvidia Legacy) (GTX 9xx-10xx series)
+  ```
+  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-legacy:latest
   ```
 - ShadowOS (Intel/AMD) with Steam
   ```
   rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-steam:latest
   ```
-- ShadowOS (Nvidia) with Steam
+- ShadowOS (Nvidia) with Steam (GTX 16xx and RTX series)
   ```
   rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-steam:latest
   ```
-
+- ShadowOS (Nvidia Legacy) with Steam (GTX 9xx-10xx series)
+  ```
+  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-legacy-steam:latest
+  ```
 </details>
 
 ## Verification
