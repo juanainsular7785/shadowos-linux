@@ -22,7 +22,7 @@ jobs:
           - shadowos-linux-nvidia
           - shadowos-linux-steam
           - shadowos-linux-nvidia-steam
-        include_flatpaks: [true, false]
+        flatpak_status: ["flatpaks", "no-flatpaks"]
     permissions:
       contents: read
       packages: read
@@ -40,7 +40,8 @@ jobs:
         id: meta
         shell: bash
         run: |
-          if [[ "${{ matrix.include_flatpaks }}" == "false" ]]; then
+          # Use the string comparison for the filename suffix
+          if [[ "${{ matrix.flatpak_status }}" == "no-flatpaks" ]]; then
             echo "suffix=-noflatpaks" >> $GITHUB_OUTPUT
           else
             echo "suffix=" >> $GITHUB_OUTPUT
@@ -84,7 +85,7 @@ jobs:
 
       - name: Resolve Dynamic Flatpak Refs
         id: flatpak_list
-        if: ${{ matrix.include_flatpaks == true }}
+        if: ${{ matrix.flatpak_status == 'flatpaks' }}
         shell: bash
         run: |
           BASE_DIR="files/flatpaks"
@@ -128,7 +129,7 @@ jobs:
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
-          flatpak_remote_refs: ${{ matrix.include_flatpaks == true && steps.flatpak_list.outputs.refs || '' }}
+          flatpak_remote_refs: ${{ matrix.flatpak_status == 'flatpaks' && steps.flatpak_list.outputs.refs || '' }}
           iso_name: ${{ matrix.image }}${{ steps.meta.outputs.suffix }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
           
       - name: Upload ISO to Job Artifacts
