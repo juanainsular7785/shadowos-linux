@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Maximize build space
         uses: jlumbroso/free-disk-space@main
-        with:	
+        with:    
           tool-cache: true
 
       - name: Checkout
@@ -49,17 +49,14 @@ jobs:
           MAX_RETRIES=5
           RETRY_COUNT=0
           SUCCESS=false
-          
           URL="https://fedoraproject.org/releases.json"
 
           until [ $RETRY_COUNT -ge $MAX_RETRIES ] || [ "$SUCCESS" = true ]; do
             echo "Attempting to fetch Fedora releases (Attempt $((RETRY_COUNT + 1))...)"
-            
             RESPONSE=$(curl -fsSL "$URL" || echo "failed")
 
             if [ "$RESPONSE" != "failed" ]; then
               VERSION=$(echo "$RESPONSE" | grep -oE '"version": "[0-9]+"' | grep -oE '[0-9]+' | sort -rn | head -n 1)
-              
               if [ -n "$VERSION" ]; then
                 echo "stable_one=$VERSION" >> $GITHUB_OUTPUT
                 echo "Selected Fedora Version: $VERSION"
@@ -79,6 +76,41 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve Dynamic Flatpak Refs
+        id: flatpak_list
+        shell: bash
+        run: |
+          BASE_DIR="files/flatpaks"
+          REFS_STRING=""
+
+          process_file() {
+            local file_path=$1
+            if [ -f "$file_path" ]; then
+              echo "Processing file: $file_path"
+              while IFS= read -r ID || [ -n "$ID" ]; do
+                [[ -z "$ID" || "$ID" =~ ^# ]] && continue
+                CLEAN_ID=$(echo "$ID" | tr -d '\r' | xargs)
+                
+                echo "Resolving $CLEAN_ID..."
+                FULL_REF=$(curl -s "https://flathub.org/api/v2/appstream/$CLEAN_ID" | jq -r '.bundle.value // empty')
+                
+                if [ -n "$FULL_REF" ] && [ "$FULL_REF" != "null" ]; then
+                    REFS_STRING+="$FULL_REF "
+                else
+                    echo "Warning: Could not resolve $CLEAN_ID via API. Using stable app fallback."
+                    REFS_STRING+="app/$CLEAN_ID/x86_64/stable "
+                fi
+              done < "$file_path"
+            fi
+          }
+
+          process_file "$BASE_DIR/app"
+          process_file "$BASE_DIR/runtime"
+
+          FINAL_REFS=$(echo "$REFS_STRING" | xargs)
+          echo "Generated Refs: $FINAL_REFS"
+          echo "refs=$FINAL_REFS" >> $GITHUB_OUTPUT
+
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso_build
@@ -89,7 +121,7 @@ jobs:
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
-          flatpak_remote_refs_dir: files/flatpak
+          flatpak_remote_refs: ${{ steps.flatpak_list.outputs.refs }}
           iso_name: ${{ matrix.image }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
           
       - name: Upload ISO to Job Artifacts
