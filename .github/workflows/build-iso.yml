@@ -120,7 +120,7 @@ jobs:
         with:
           image-ref: ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
           hook-post-rootfs: files/scripts/post_rootfs.sh
-          flatpak-list: ${{ steps.flatpak_list.outputs.refs }}
+          flatpaks-list: ${{ steps.flatpak_list.outputs.refs }}
 
       - name: Finalize ISO Name
         id: rename
