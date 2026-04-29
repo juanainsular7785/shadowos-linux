@@ -19,11 +19,11 @@ jobs:
       matrix:
         gpu: [nvidia, nvidia-legacy, amd-intel]
         steam: [steam, no-steam]
+        flatpak_status: [flatpaks, no-flatpaks]
     permissions:
       contents: read
       packages: read
       id-token: write
-      
     steps:
       - name: Maximize build space
         uses: jlumbroso/free-disk-space@main
@@ -32,6 +32,24 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@main
+
+      - name: Generate Metadata
+        id: meta
+        shell: bash
+        run: |
+          ISO_NAME="shadowos-linux"
+          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && ISO_NAME+="-${{ matrix.gpu }}"
+          [[ "${{ matrix.steam }}" != "no-steam" ]] && ISO_NAME+="-${{ matrix.steam }}"
+          
+          echo "container_image=$ISO_NAME" >> $GITHUB_OUTPUT
+
+          if [[ "${{ matrix.flatpak_status }}" == "no-flatpaks" ]]; then
+            ISO_NAME+="-noflatpaks"
+          fi
+          
+          echo "full_iso_name=$ISO_NAME" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Fetch Fedora Release
         id: clean_version
@@ -67,25 +85,13 @@ jobs:
             exit 1
           fi
 
-      - name: Generate Metadata
-        id: meta
-        shell: bash
-        run: |
-          IMAGE_NAME="shadowos-linux"
-          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && IMAGE_NAME+="-${{ matrix.gpu }}"
-          [[ "${{ matrix.steam }}" != "no-steam" ]] && IMAGE_NAME+="-${{ matrix.steam }}"
-          echo "container_image=$IMAGE_NAME" >> $GITHUB_OUTPUT
-
-          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Resolve Dynamic Flatpak Refs
         id: flatpak_list
+        if: ${{ matrix.flatpak_status == 'flatpaks' }}
         shell: bash
         run: |
           BASE_DIR="files/flatpaks"
-          FLATPAK_FILE="${{ github.workspace }}/resolved_flatpaks.txt"
-          touch "$FLATPAK_FILE"
+          REFS_STRING=""
 
           process_file() {
             local file_path=$1
@@ -99,10 +105,10 @@ jobs:
                 FULL_REF=$(curl -s "https://flathub.org/api/v2/appstream/$CLEAN_ID" | jq -r '.bundle.value // empty')
                 
                 if [ -n "$FULL_REF" ] && [ "$FULL_REF" != "null" ]; then
-                    echo "$FULL_REF" >> "$FLATPAK_FILE"
+                    REFS_STRING+="$FULL_REF "
                 else
-                    echo "Warning: Could not resolve $CLEAN_ID. Using stable fallback."
-                    echo "app/$CLEAN_ID/x86_64/stable" >> "$FLATPAK_FILE"
+                    echo "Warning: Could not resolve $CLEAN_ID via API. Using stable app fallback."
+                    REFS_STRING+="app/$CLEAN_ID/x86_64/stable "
                 fi
               done < "$file_path"
             fi
@@ -110,37 +116,30 @@ jobs:
 
           process_file "$BASE_DIR/app"
           process_file "$BASE_DIR/runtime"
-          
-          echo "path=$FLATPAK_FILE" >> $GITHUB_OUTPUT
 
-      - name: Build ISO        
+          FINAL_REFS=$(echo "$REFS_STRING" | xargs)
+          echo "Generated Refs: $FINAL_REFS"
+          echo "refs=$FINAL_REFS" >> $GITHUB_OUTPUT
+
+      - name: Build ISO
+        uses: jasonn3/build-container-installer@main
         id: iso_build
-        uses: ublue-os/titanoboa@main
         with:
-          image-ref: ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
-          hook-post-rootfs: ${{ github.workspace }}/files/scripts/post_rootfs.sh
-          flatpaks-list: ${{ steps.flatpak_list.outputs.path }}
-
-      - name: Rename and Checksum ISO
-        id: rename
-        shell: bash
-        run: |
-          VERSION="f${{ steps.clean_version.outputs.stable_one }}"
-          BASE_NAME="${{ steps.meta.outputs.container_image }}"
-          DATE="${{ steps.meta.outputs.date }}"
-          SHA="${{ steps.meta.outputs.sha_short }}"
-          FINAL_NAME="${BASE_NAME}-${VERSION}-${DATE}-${SHA}.iso"
-          mv "${{ steps.iso_build.outputs.iso-dest }}" "$FINAL_NAME"
-          sha256sum "$FINAL_NAME" | tee "$FINAL_NAME-CHECKSUM"
-          echo "iso_file=$FINAL_NAME" >> $GITHUB_OUTPUT
-          echo "checksum_file=$FINAL_NAME-CHECKSUM" >> $GITHUB_OUTPUT
-
+          arch: x86_64
+          image_name: ${{ steps.meta.outputs.container_image }}
+          image_repo: ghcr.io/shadowos-linux 
+          image_tag: latest
+          version: ${{ steps.clean_version.outputs.stable_one }}
+          variant: cosmic-atomic
+          flatpak_remote_refs: ${{ matrix.flatpak_status == 'flatpaks' && steps.flatpak_list.outputs.refs || '' }}
+          iso_name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+          
       - name: Upload ISO to Job Artifacts
         uses: actions/upload-artifact@main
         with:
           path: |
-            ${{ steps.rename.outputs.iso_file }}
-            ${{ steps.rename.outputs.checksum_file }}
-          name: ${{ steps.rename.outputs.iso_file }}
+            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
+          name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
           retention-days: 4
           compression-level: 9
