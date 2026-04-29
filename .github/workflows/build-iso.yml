@@ -121,7 +121,7 @@ jobs:
           hook-post-rootfs: ${{ github.workspace }}/files/scripts/post_rootfs.sh
           flatpaks-list: ${{ steps.flatpak_list.outputs.path }}
 
-      - name: Finalize ISO Name
+      - name: Rename and Checksum ISO
         id: rename
         shell: bash
         run: |
@@ -129,12 +129,9 @@ jobs:
           BASE_NAME="${{ steps.meta.outputs.container_image }}"
           DATE="${{ steps.meta.outputs.date }}"
           SHA="${{ steps.meta.outputs.sha_short }}"
-
           FINAL_NAME="${BASE_NAME}-${VERSION}-${DATE}-${SHA}.iso"
-          
-          mv "${{ steps.iso_build.outputs.iso-dest }}.iso" "$FINAL_NAME"
-          sha256sum "$FINAL_NAME" > "$FINAL_NAME-CHECKSUM"
-          
+          mv "${{ steps.iso_build.outputs.iso-dest }}" "$FINAL_NAME"
+          sha256sum "$FINAL_NAME" | tee "$FINAL_NAME-CHECKSUM"
           echo "iso_file=$FINAL_NAME" >> $GITHUB_OUTPUT
           echo "checksum_file=$FINAL_NAME-CHECKSUM" >> $GITHUB_OUTPUT
 
