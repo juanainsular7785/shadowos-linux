@@ -5,7 +5,7 @@ IMAGE_VARIANT_ID=$(grep '^VARIANT_ID=' /etc/os-release | cut -d= -f2 | tr -d '"'
 IMAGE_REF="ghcr.io/shadowos-linux/$IMAGE_VARIANT_ID"
 IMAGE_TAG="latest"
 
-dnf install -y anaconda-live firefox libblockdev-btrfs libblockdev-lvm libblockdev-dm
+dnf install -y anaconda-live firefox libblockdev-btrfs libblockdev-lvm libblockdev-dm --setopt=disable_excludes=*
 sed -i '/\[Desktop Entry\]/a NoDisplay=true' /usr/share/applications/org.mozilla.firefox.desktop
 
 sed -i -e 's/Fedora/ShadowOS/g' /usr/share/anaconda/ui/anaconda.ui || true
