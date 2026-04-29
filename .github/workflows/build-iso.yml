@@ -19,7 +19,6 @@ jobs:
       matrix:
         gpu: [nvidia, nvidia-legacy, amd-intel]
         steam: [steam, no-steam]
-        flatpak_status: [flatpaks, no-flatpaks]
     permissions:
       contents: read
       packages: read
@@ -32,24 +31,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@main
-
-      - name: Generate Metadata
-        id: meta
-        shell: bash
-        run: |
-          ISO_NAME="shadowos-linux"
-          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && ISO_NAME+="-${{ matrix.gpu }}"
-          [[ "${{ matrix.steam }}" != "no-steam" ]] && ISO_NAME+="-${{ matrix.steam }}"
-          
-          echo "container_image=$ISO_NAME" >> $GITHUB_OUTPUT
-
-          if [[ "${{ matrix.flatpak_status }}" == "no-flatpaks" ]]; then
-            ISO_NAME+="-noflatpaks"
-          fi
-          
-          echo "full_iso_name=$ISO_NAME" >> $GITHUB_OUTPUT
-          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Fetch Fedora Release
         id: clean_version
@@ -85,9 +66,20 @@ jobs:
             exit 1
           fi
 
+      - name: Generate Metadata
+        id: meta
+        shell: bash
+        run: |
+          IMAGE_NAME="shadowos-linux"
+          [[ "${{ matrix.gpu }}" != "amd-intel" ]] && IMAGE_NAME+="-${{ matrix.gpu }}"
+          [[ "${{ matrix.steam }}" != "no-steam" ]] && IMAGE_NAME+="-${{ matrix.steam }}"
+          echo "container_image=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Resolve Dynamic Flatpak Refs
         id: flatpak_list
-        if: ${{ matrix.flatpak_status == 'flatpaks' }}
         shell: bash
         run: |
           BASE_DIR="files/flatpaks"
@@ -121,25 +113,37 @@ jobs:
           echo "Generated Refs: $FINAL_REFS"
           echo "refs=$FINAL_REFS" >> $GITHUB_OUTPUT
 
-      - name: Build ISO
-        uses: jasonn3/build-container-installer@main
+      - name: Build ISO        
         id: iso_build
+        uses: ublue-os/titanoboa@main
         with:
-          arch: x86_64
-          image_name: ${{ steps.meta.outputs.container_image }}
-          image_repo: ghcr.io/shadowos-linux 
-          image_tag: latest
-          version: ${{ steps.clean_version.outputs.stable_one }}
-          variant: cosmic-atomic
-          flatpak_remote_refs: ${{ matrix.flatpak_status == 'flatpaks' && steps.flatpak_list.outputs.refs || '' }}
-          iso_name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+          image-ref: ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
+          hook-post-rootfs: files/scripts/post_rootfs.sh
+          flatpak-list: ${{ steps.flatpak_list.outputs.refs }}
+
+      - name: Finalize ISO Name
+        id: rename
+        shell: bash
+        run: |
+          VERSION="f${{ steps.clean_version.outputs.stable_one }}"
+          BASE_NAME="${{ steps.meta.outputs.container_image }}"
+          DATE="${{ steps.meta.outputs.date }}"
+          SHA="${{ steps.meta.outputs.sha_short }}"
+
+          FINAL_NAME="${BASE_NAME}-${VERSION}-${DATE}-${SHA}.iso"
           
+          mv "${{ steps.iso_build.outputs.iso-dest }}.iso" "$FINAL_NAME"
+          sha256sum "$FINAL_NAME" > "$FINAL_NAME-CHECKSUM"
+          
+          echo "iso_file=$FINAL_NAME" >> $GITHUB_OUTPUT
+          echo "checksum_file=$FINAL_NAME-CHECKSUM" >> $GITHUB_OUTPUT
+
       - name: Upload ISO to Job Artifacts
         uses: actions/upload-artifact@main
         with:
           path: |
-            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
-            ${{ steps.iso_build.outputs.iso_path }}/${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso-CHECKSUM
-          name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.zip
+            ${{ steps.rename.outputs.iso_file }}
+            ${{ steps.rename.outputs.checksum_file }}
+          name: ${{ steps.rename.outputs.iso_file }}
           retention-days: 4
           compression-level: 9
