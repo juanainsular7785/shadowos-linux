@@ -8,6 +8,19 @@ IMAGE_TAG="latest"
 dnf install -y anaconda-live firefox libblockdev-btrfs libblockdev-lvm libblockdev-dm --setopt=disable_excludes=*
 sed -i '/\[Desktop Entry\]/a NoDisplay=true' /usr/share/applications/org.mozilla.firefox.desktop
 
+FAVORITES_CONTENT='[
+    "liveinst",
+    "com.system76.CosmicStore",
+    "com.system76.CosmicTerm",
+    "io.gitlab.librewolf-community"
+]'
+
+mkdir -p /etc/skel/.config/cosmic/com.system76.CosmicAppList/v1/
+echo "$FAVORITES_CONTENT" > /etc/skel/.config/cosmic/com.system76.CosmicAppList/v1/favorites
+
+mkdir -p /home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/
+echo "$FAVORITES_CONTENT" > /home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/favorites
+
 sed -i -e 's/Fedora/ShadowOS/g' /usr/share/anaconda/ui/anaconda.ui || true
 
 mkdir -p /etc/anaconda/profile.d/
