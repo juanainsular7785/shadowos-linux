@@ -25,10 +25,10 @@ jobs:
       id-token: write
       
     steps:
-#      - name: Maximize build space
-#        uses: jlumbroso/free-disk-space@main
-#        with:    
-#          tool-cache: true
+      - name: Maximize build space
+        uses: jlumbroso/free-disk-space@main
+        with:    
+          tool-cache: true
 
       - name: Checkout
         uses: actions/checkout@main
