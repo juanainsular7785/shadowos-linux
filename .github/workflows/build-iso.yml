@@ -119,7 +119,7 @@ jobs:
         uses: ublue-os/titanoboa@main
         with:
           image-ref: ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
-          hook-post-rootfs: files/scripts/post_rootfs.sh
+          hook-post-rootfs: ${{ github.workspace }}/files/scripts/post_rootfs.sh
           flatpaks-list: ${{ steps.flatpak_list.outputs.refs }}
 
       - name: Finalize ISO Name
