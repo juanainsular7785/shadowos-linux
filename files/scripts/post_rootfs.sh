@@ -18,8 +18,8 @@ FAVORITES_CONTENT='[
 mkdir -p /etc/skel/.config/cosmic/com.system76.CosmicAppList/v1/
 echo "$FAVORITES_CONTENT" > /etc/skel/.config/cosmic/com.system76.CosmicAppList/v1/favorites
 
-mkdir -p /home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/
-echo "$FAVORITES_CONTENT" > /home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/favorites
+mkdir -p /var/home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/
+echo "$FAVORITES_CONTENT" > /var/home/liveuser/.config/cosmic/com.system76.CosmicAppList/v1/favorites
 
 sed -i -e 's/Fedora/ShadowOS/g' /usr/share/anaconda/ui/anaconda.ui || true
 
@@ -37,9 +37,6 @@ btrfs_compression = zstd:1
 
 [Bootloader]
 efi_dir = fedora
-
-[User Interface]
-custom_stylesheet = /usr/share/anaconda/pixmaps/fedora-silverblue.css
 EOF
 
 tee -a /usr/share/anaconda/interactive-defaults.ks <<EOF
