@@ -5,7 +5,7 @@ IMAGE_VARIANT_ID=$(grep '^VARIANT_ID=' /etc/os-release | cut -d= -f2 | tr -d '"'
 IMAGE_REF="ghcr.io/shadowos-linux/$IMAGE_VARIANT_ID"
 IMAGE_TAG="latest"
 
-dnf install -y anaconda-live firefox libblockdev-btrfs libblockdev-lvm libblockdev-dm --setopt=disable_excludes=* --set-opt=install_weak_deps=False
+dnf install -y anaconda-live firefox libblockdev-btrfs libblockdev-lvm libblockdev-dm --setopt=disable_excludes=* --setopt=install_weak_deps=False
 sed -i '/\[Desktop Entry\]/a NoDisplay=true' /usr/share/applications/org.mozilla.firefox.desktop
 
 FAVORITES_CONTENT='[
