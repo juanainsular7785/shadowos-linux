@@ -84,7 +84,8 @@ jobs:
         shell: bash
         run: |
           BASE_DIR="files/flatpaks"
-          REFS_STRING=""
+          FLATPAK_FILE="${{ github.workspace }}/resolved_flatpaks.txt"
+          touch "$FLATPAK_FILE"
 
           process_file() {
             local file_path=$1
@@ -98,10 +99,10 @@ jobs:
                 FULL_REF=$(curl -s "https://flathub.org/api/v2/appstream/$CLEAN_ID" | jq -r '.bundle.value // empty')
                 
                 if [ -n "$FULL_REF" ] && [ "$FULL_REF" != "null" ]; then
-                    REFS_STRING+="$FULL_REF "
+                    echo "$FULL_REF" >> "$FLATPAK_FILE"
                 else
-                    echo "Warning: Could not resolve $CLEAN_ID via API. Using stable app fallback."
-                    REFS_STRING+="app/$CLEAN_ID/x86_64/stable "
+                    echo "Warning: Could not resolve $CLEAN_ID. Using stable fallback."
+                    echo "app/$CLEAN_ID/x86_64/stable" >> "$FLATPAK_FILE"
                 fi
               done < "$file_path"
             fi
@@ -109,10 +110,8 @@ jobs:
 
           process_file "$BASE_DIR/app"
           process_file "$BASE_DIR/runtime"
-
-          FINAL_REFS=$(echo "$REFS_STRING" | xargs)
-          echo "Generated Refs: $FINAL_REFS"
-          echo "refs=$FINAL_REFS" >> $GITHUB_OUTPUT
+          
+          echo "path=$FLATPAK_FILE" >> $GITHUB_OUTPUT
 
       - name: Build ISO        
         id: iso_build
@@ -120,7 +119,7 @@ jobs:
         with:
           image-ref: ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
           hook-post-rootfs: ${{ github.workspace }}/files/scripts/post_rootfs.sh
-          flatpaks-list: ${{ steps.flatpak_list.outputs.refs }}
+          flatpaks-list: ${{ steps.flatpak_list.outputs.path }}
 
       - name: Finalize ISO Name
         id: rename
