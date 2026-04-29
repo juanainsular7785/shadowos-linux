@@ -17,7 +17,9 @@ if [[ $- == *i* ]]; then
         fi
     fi
 
-    cd ~
+    if [ "$PWD" = "/var/home/$USER" ]; then
+        cd ~
+    fi
     clear
     fastfetch
 fi
