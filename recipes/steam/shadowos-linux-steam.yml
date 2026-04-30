@@ -9,7 +9,3 @@ modules:
   - type: os-release
     properties:
       VARIANT_ID: shadowos-linux-steam
-
-  - type: script
-    scripts:
-      - steam.sh
