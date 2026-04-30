@@ -127,6 +127,7 @@ jobs:
           podman pull ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
           CONTAINER=$(podman create ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest)
           podman export $CONTAINER | docker import - shadowos-squashed:latest
+          docker tag shadowos-squashed:latest docker-daemon/shadowos-squashed:latest
           podman rm $CONTAINER
 
       - name: Build ISO
