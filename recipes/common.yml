@@ -10,11 +10,14 @@ modules:
     repos:
       copr:
         - ryanabx/cosmic-epoch
+        - zeno/scrcpy
     install:
       packages:
         - cosmic-desktop
         - gnome-disk-utility
         - yt-dlp
+        - android-tools
+        - scrcpy
     remove:
       packages:
         - gnome-control-center-filesystem
