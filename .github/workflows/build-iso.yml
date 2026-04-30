@@ -126,8 +126,7 @@ jobs:
         run: |
           podman pull ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest
           CONTAINER=$(podman create ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest)
-          podman export $CONTAINER | docker import - shadowos-squashed:latest
-          docker tag shadowos-squashed:latest docker-daemon/shadowos-squashed:latest
+          podman export $CONTAINER | docker import - local-image/shadowos-squashed:latest
           podman rm $CONTAINER
 
       - name: Build ISO
@@ -136,7 +135,7 @@ jobs:
         with:
           arch: x86_64
           image_name: shadowos-squashed
-          image_repo: docker-daemon
+          image_repo: local-image
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
