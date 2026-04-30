@@ -92,7 +92,12 @@ modules:
         scope: user
         repo:
           title: Flathub (user)
-          
+
+  - type: akmods
+    base: bazzite
+    install:
+      - v4l2loopback
+  
   - type: os-release
     properties:
       NAME: ShadowOS
