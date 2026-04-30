@@ -121,24 +121,13 @@ jobs:
           echo "Generated Refs: $FINAL_REFS"
           echo "refs=$FINAL_REFS" >> $GITHUB_OUTPUT
 
-      - name: Prepare Squashed Local Image
-        shell: bash
-        run: |
-          IMAGE="ghcr.io/shadowos-linux/${{ steps.meta.outputs.container_image }}:latest"
-          podman pull $IMAGE
-          CONTAINER=$(podman create $IMAGE)
-          podman export $CONTAINER | docker import - shadowos-local:latest
-          mkdir -p container/shadowos-local-latest
-          skopeo copy docker-daemon:shadowos-local:latest oci:container/shadowos-local-latest:latest
-          podman rm $CONTAINER
-          
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: iso_build
         with:
           arch: x86_64
-          image_name: shadowos-local
-          image_repo: ${{ github.workspace }}/container
+          image_name: ${{ steps.meta.outputs.container_image }}
+          image_repo: ghcr.io/shadowos-linux 
           image_tag: latest
           version: ${{ steps.clean_version.outputs.stable_one }}
           variant: cosmic-atomic
