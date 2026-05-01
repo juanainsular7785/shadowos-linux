@@ -57,4 +57,4 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           maximize_build_space: true
           build_chunked_oci: true
-          max_layers: 100
+          max_layers: 127
