@@ -133,6 +133,8 @@ jobs:
           variant: cosmic-atomic
           flatpak_remote_refs: ${{ matrix.flatpak_status == 'flatpaks' && steps.flatpak_list.outputs.refs || '' }}
           iso_name: ${{ steps.meta.outputs.full_iso_name }}-f${{ steps.clean_version.outputs.stable_one }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.sha_short }}.iso
+          enable_cache_dnf: "false"
+          enable_cache_skopeo: "false"
           
       - name: Upload ISO to Job Artifacts
         uses: actions/upload-artifact@main
