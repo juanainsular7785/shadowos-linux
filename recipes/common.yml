@@ -18,6 +18,8 @@ modules:
         - yt-dlp
         - android-tools
         - scrcpy
+      exclude:
+        - cosmic-initial-setup
     remove:
       packages:
         - gnome-control-center-filesystem
