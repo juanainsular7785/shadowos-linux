@@ -27,6 +27,11 @@ for app in "${APPS_TO_HIDE[@]}"; do
 done
 
 if [ -f "/etc/skel/.config/autostart/steam.desktop" ]; then
-    echo "Removing Steam autostart from skel..."
+    echo "Removing Steam autostart..."
     rm -f "/etc/skel/.config/autostart/steam.desktop"
+fi
+
+if [ -f "/etc/xdg/autostart/com.system76.CosmicInitialSetup.desktop" ]; then
+    echo "Removing COSMIC Initial Setup autostart..."
+    rm -f "/etc/xdg/autostart/com.system76.CosmicInitialSetup.desktop"
 fi
